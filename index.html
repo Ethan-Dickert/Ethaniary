@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethanairy Cipher & Audio Synthesizer</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #06b6d4;
+            --accent-hover: #0891b2;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --code-bg: #020617;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: #000;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+            color: #fff;
+        }
+
+        button.secondary {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        button.secondary:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .rules-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .rule-box {
+            background-color: var(--code-bg);
+            border-left: 3px solid var(--accent);
+            padding: 10px 14px;
+            border-radius: 4px;
+        }
+
+        .rule-box h4 {
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .rule-box p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .rule-box code {
+            color: #f43f5e;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            accent-color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--accent);
+        }
+
+        td code {
+            font-family: 'Courier New', Courier, monospace;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ETHANAIRY STUDIO</h1>
+        <p>Case-Sensitive Custom Cipher & Synthesizer Engine</p>
+    </header>
+
+    <div class="container">
+
+        <!-- Rule Summary Panel -->
+        <div class="card">
+            <div class="card-title">Cipher Rulebook</div>
+            <div class="rules-summary">
+                <div class="rule-box">
+                    <h4>Uppercase (A-Z)</h4>
+                    <p>Dot = <code>#</code> | Dash = <code>+</code></p>
+                    <p>Sequence is <strong>Inverted / Flipped</strong></p>
+                </div>
+                <div class="rule-box">
+                    <h4>Lowercase (a-z)</h4>
+                    <p>Dot = <code>*</code> | Dash = <code>=</code></p>
+                    <p>Sequence is <strong>Standard Order</strong></p>
+                </div>
+                <div class="rule-box">
+                    <h4>Delimiters</h4>
+                    <p>Letters = <code>^</code> | Words = <code>(word)</code></p>
+                    <p>Sentences = <code>~</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Translation Interface -->
+        <div class="grid-2">
+            <!-- Plaintext Card -->
+            <div class="card">
+                <div class="card-title">
+                    Plaintext (English)
+                    <button class="secondary" onclick="clearText()">Clear</button>
+                </div>
+                <textarea id="plainText" placeholder="Type text here...">Hello World</textarea>
+                <div class="btn-group">
+                    <button onclick="copyToClipboard('plainText')">Copy Text</button>
+                </div>
+            </div>
+
+            <!-- Ethanairy Code Card -->
+            <div class="card">
+                <div class="card-title">
+                    Ethanairy Code
+                    <button class="secondary" onclick="clearText()">Clear</button>
+                </div>
+                <textarea id="ethanairyText" placeholder="Type Ethanairy code here... e.g. (####^**)"></textarea>
+                <div class="btn-group">
+                    <button onclick="playEthanairyAudio()">▶ Play Audio</button>
+                    <button class="secondary" onclick="stopEthanairyAudio()">■ Stop</button>
+                    <button class="secondary" onclick="copyToClipboard('ethanairyText')">Copy Code</button>
+                </div>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="speed">Speed (WPM):</label>
+                        <input type="range" id="speed" min="5" max="30" value="15">
+                        <span id="speedVal">15</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lookup Reference Chart -->
+        <div class="card">
+            <div class="card-title">Ethanairy Alphabet Lookup</div>
+            <div style="max-height: 220px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Char</th>
+                            <th>Morse Base</th>
+                            <th>UPPERCASE (Flipped: # / +)</th>
+                            <th>lowercase (Standard: * / =)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="referenceTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const MORSE_MAP = {
+            'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',   'E': '.',
+            'F': '..-.',  'G': '--.',   'H': '....',  'I': '..',    'J': '.---',
+            'K': '-.-',   'L': '.-..',  'M': '--',    'N': '-.',    'O': '---',
+            'P': '.--.',  'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+            'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',  'Y': '-.--',
+            'Z': '--..',  '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+            '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+            '0': '-----'
+        };
+
+        // Pre-build exact encode and decode lookup maps
+        const ENCODE_MAP = {};
+        const DECODE_MAP = {};
+
+        Object.entries(MORSE_MAP).forEach(([char, morse]) => {
+            if (isNaN(char)) {
+                // Uppercase: Flipped sequence, # = dot, + = dash
+                const upperCode = morse.split('').reverse().join('').replace(/\./g, '#').replace(/-/g, '+');
+                ENCODE_MAP[char] = upperCode;
+                DECODE_MAP[upperCode] = char;
+
+                // Lowercase: Standard sequence, * = dot, = = dash
+                const lowerChar = char.toLowerCase();
+                const lowerCode = morse.replace(/\./g, '*').replace(/-/g, '=');
+                ENCODE_MAP[lowerChar] = lowerCode;
+                DECODE_MAP[lowerCode] = lowerChar;
+            } else {
+                // Numbers use standard symbol mapping
+                const numCode = morse.replace(/\./g, '*').replace(/-/g, '=');
+                ENCODE_MAP[char] = numCode;
+                DECODE_MAP[numCode] = char;
+            }
+        });
+
+        // Populate Reference Chart
+        const refTable = document.getElementById('referenceTable');
+        Object.keys(MORSE_MAP).forEach(char => {
+            if (isNaN(char)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${char} / ${char.toLowerCase()}</strong></td>
+                    <td><code>${MORSE_MAP[char]}</code></td>
+                    <td><code>${ENCODE_MAP[char]}</code></td>
+                    <td><code>${ENCODE_MAP[char.toLowerCase()]}</code></td>
+                `;
+                refTable.appendChild(tr);
+            }
+        });
+
+        // Encode Single Character
+        function encodeChar(c) {
+            return ENCODE_MAP[c] || c;
+        }
+
+        // Translate Text -> Ethanairy
+        function textToEthanairy(text) {
+            if (!text.trim()) return '';
+            
+            const lines = text.split('\n');
+            return lines.map(line => {
+                if (!line.trim()) return '';
+                const words = line.trim().split(/\s+/);
+                const encodedWords = words.map(word => {
+                    const encodedChars = Array.from(word).map(char => encodeChar(char));
+                    return `(${encodedChars.join('^')})`;
+                });
+                return encodedWords.join('');
+            }).join('~\n');
+        }
+
+        // Decode Ethanairy -> Text
+        function ethanairyToText(code) {
+            if (!code.trim()) return '';
+
+            const lines = code.split('~');
+            return lines.map(line => {
+                const wordMatches = line.match(/\(([^)]+)\)/g);
+                if (!wordMatches) return '';
+
+                return wordMatches.map(wordBlock => {
+                    const inner = wordBlock.slice(1, -1); // Strip outer ()
+                    const charTokens = inner.split('^');
+                    return charTokens.map(token => DECODE_MAP[token] || token).join('');
+                }).join(' ');
+            }).join('\n');
+        }
+
+        // Live Event Listeners
+        const plainInput = document.getElementById('plainText');
+        const ethanairyInput = document.getElementById('ethanairyText');
+        const speedInput = document.getElementById('speed');
+        const speedVal = document.getElementById('speedVal');
+
+        let isUpdating = false;
+
+        plainInput.addEventListener('input', () => {
+            if (isUpdating) return;
+            isUpdating = true;
+            ethanairyInput.value = textToEthanairy(plainInput.value);
+            isUpdating = false;
+        });
+
+        ethanairyInput.addEventListener('input', () => {
+            if (isUpdating) return;
+            isUpdating = true;
+            plainInput.value = ethanairyToText(ethanairyInput.value);
+            isUpdating = false;
+        });
+
+        speedInput.addEventListener('input', () => {
+            speedVal.textContent = speedInput.value;
+        });
+
+        // Initial encode on page load
+        ethanairyInput.value = textToEthanairy(plainInput.value);
+
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        let activeNodes = [];
+        let isPlaying = false;
+
+        function playEthanairyAudio() {
+            stopEthanairyAudio();
+            const code = ethanairyInput.value;
+            if (!code.trim()) return;
+
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            isPlaying = true;
+            const wpm = parseInt(speedInput.value);
+            const dotDuration = 1.2 / wpm;
+
+            let time = audioCtx.currentTime + 0.1;
+
+            for (let char of code) {
+                if (!isPlaying) break;
+
+                if (char === '#' || char === '*') {
+                    playTone(time, dotDuration, char === '#' ? 780 : 520);
+                    time += dotDuration * 2;
+                } else if (char === '+' || char === '=') {
+                    playTone(time, dotDuration * 3, char === '+' ? 780 : 520);
+                    time += dotDuration * 4;
+                } else if (char === '^') {
+                    time += dotDuration * 2; // Inter-letter pause
+                } else if (char === ')' || char === '(') {
+                    time += dotDuration * 3; // Word boundary pause
+                } else if (char === '~') {
+                    time += dotDuration * 6; // Sentence pause
+                }
+            }
+        }
+
+        function playTone(startTime, duration, freq) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.18, startTime + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+
+            activeNodes.push(osc);
+        }
+
+        function stopEthanairyAudio() {
+            isPlaying = false;
+            activeNodes.forEach(node => {
+                try { node.stop(); } catch(e){}
+            });
+            activeNodes = [];
+        }
+
+        function clearText() {
+            plainInput.value = '';
+            ethanairyInput.value = '';
+        }
+
+        function copyToClipboard(id) {
+            const el = document.getElementById(id);
+            el.select();
+            navigator.clipboard.writeText(el.value);
+        }
+    </script>
+</body>
+</html>
